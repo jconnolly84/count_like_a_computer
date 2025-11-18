@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Connolly's Count Like a Computer</title>
+  <style>
+    :root {
+      --bg-main: #050712;
+      --bg-panel: #0f1428;
+      --bg-panel-alt: #121933;
+      --accent: #3af2a3;
+      --accent-soft: #2bbf7c;
+      --danger: #ff6b81;
+      --text-main: #f5f5f5;
+      --text-muted: #9ba3d6;
+      --grid-line: #222b4a;
+      --shadow-glow: 0 0 18px rgba(58, 242, 163, 0.35);
+      --binary-colour: #7fffb0;
+      --denary-colour: #7fb3ff;
+      --hex-colour: #d29bff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #111633 0, #050712 55%, #02030a 100%);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    #header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 8px;
+    }
+
+    #logo {
+      width: 80px;
+      height: 80px;
+      border-radius: 999px;
+      object-fit: contain;
+      background: radial-gradient(circle at center, #ffffff1a, #00000000);
+      box-shadow: 0 0 16px rgba(0,0,0,0.6);
+    }
+
+    #titleBlock h1 {
+      margin: 0 0 2px;
+      letter-spacing: 0.14em;
+      font-size: 1.25rem;
+      text-transform: uppercase;
+      color: var(--accent);
+      text-shadow: 0 0 8px rgba(58, 242, 163, 0.4);
+    }
+
+    #subtitle {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    #shell {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 980px;
+      width: 100%;
+      align-items: stretch;
+    }
+
+    #topRow {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: stretch;
+    }
+
+    #aboutPanel {
+      flex: 1 1 260px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(18, 25, 60, 0.95), rgba(9, 15, 35, 0.98));
+      border: 1px solid rgba(58, 242, 163, 0.35);
+      box-shadow: var(--shadow-glow);
+      font-size: 0.9rem;
+    }
+
+    #aboutTitle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    #aboutTitle span {
+      font-size: 0.78rem;
+      color: var(--accent-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+    }
+
+    #gameTag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: rgba(3, 205, 118, 0.12);
+      border: 1px solid rgba(58, 242, 163, 0.5);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    #aboutPanel p { margin: 4px 0; line-height: 1.4; }
+
+    #gameContainer {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    #canvasWrapper { position: relative; flex: 0 1 440px; }
+
+    canvas {
+      background: radial-gradient(circle at top, #131834 0, #050813 55%, #02030a 100%);
+      border-radius: 12px;
+      border: 2px solid #263057;
+      box-shadow: 0 0 22px rgba(0, 0, 0, 0.7);
+    }
+
+    #rightColumn {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 0 1 300px;
+    }
+
+    #uiPanel {
+      padding: 12px 14px;
+      background: linear-gradient(145deg, #0c1225, #101731);
+      border-radius: 12px;
+      border: 1px solid #2d3a6b;
+      box-shadow: 0 10px 18px rgba(0,0,0,0.7);
+      font-size: 0.92rem;
+    }
+
+    #uiPanel h2 {
+      margin: 0 0 6px;
+      font-size: 1.02rem;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    #uiPanel h2 span {
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--text-muted);
+    }
+
+    .divider {
+      border-top: 1px solid rgba(61, 77, 140, 0.9);
+      margin: 6px 0 8px;
+    }
+
+    .statRow {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.86rem;
+      margin: 3px 0;
+    }
+
+    .statLabel { color: var(--text-muted); }
+    .statValue { font-weight: 600; }
+    #modeLabel { color: var(--accent-soft); }
+
+    .mode-group {
+      margin-top: 6px;
+      border-radius: 8px;
+      border: 1px solid rgba(61,77,140,0.9);
+      background: rgba(7, 11, 29, 0.9);
+      overflow: hidden;
+    }
+
+    .mode-group-header {
+      padding: 5px 8px;
+      font-size: 0.82rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .mode-group-header span {
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+    }
+
+    .mode-group-header .chevron {
+      font-size: 0.9rem;
+      opacity: 0.7;
+    }
+
+    .mode-group-body {
+      padding: 6px 6px 8px;
+      display: block;
+    }
+
+    .mode-group.collapsed .mode-group-body {
+      display: none;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    button {
+      padding: 5px 8px;
+      border-radius: 6px;
+      border: 1px solid #3af2a3;
+      background: #0b1530;
+      color: var(--text-main);
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: background 0.12s ease, transform 0.08s ease, box-shadow 0.12s;
+    }
+
+    button.active {
+      background: var(--accent);
+      color: #050813;
+      font-weight: 600;
+      box-shadow: 0 0 10px rgba(58, 242, 163, 0.5);
+    }
+
+    button:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    button:active { transform: translateY(0); box-shadow: none; }
+
+    label {
+      font-size: 0.84rem;
+      margin-top: 4px;
+      display: block;
+    }
+
+    #answerInput {
+      width: 100%;
+      padding: 7px 9px;
+      border-radius: 7px;
+      border: 1px solid rgba(58, 242, 163, 0.7);
+      background: #050813;
+      color: #f5f5f5;
+      font-size: 0.9rem;
+      margin: 5px 0 3px;
+    }
+
+    #answerInput:focus {
+      outline: 2px solid rgba(58, 242, 163, 0.9);
+      outline-offset: 1px;
+    }
+
+    .hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+
+    .hint code {
+      background: #050813;
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+    }
+
+    #message {
+      min-height: 20px;
+      font-size: 0.8rem;
+      margin-top: 3px;
+    }
+    #message.good { color: var(--accent); }
+    #message.bad  { color: var(--danger); }
+
+    #footer {
+      margin-top: 8px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-align: left;
+      line-height: 1.35;
+    }
+
+    #footer code {
+      background: #050813;
+      padding: 1px 4px;
+      border-radius: 4px;
+    }
+
+    #rulesRef {
+      margin-top: 10px;
+      padding: 8px 9px;
+      border-radius: 8px;
+      background: rgba(5, 9, 25, 0.85);
+      border: 1px solid rgba(72, 98, 189, 0.85);
+      font-size: 0.78rem;
+    }
+
+    #rulesRefTitle {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--accent-soft);
+      margin-bottom: 4px;
+    }
+
+    .rulesBlock { margin-top: 4px; }
+    .rulesHeading { font-weight: 600; color: var(--text-main); margin-bottom: 2px; }
+
+    .rulesLines {
+      font-family: "Consolas", "Courier New", monospace;
+      line-height: 1.25;
+      color: var(--text-muted);
+      white-space: pre;
+    }
+
+    #highScoresPanel {
+      padding: 8px 10px;
+      background: linear-gradient(145deg, #0b1123, #0f1731);
+      border-radius: 10px;
+      border: 1px solid #2d3a6b;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.6);
+      font-size: 0.8rem;
+    }
+
+    #highScoresTitle {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--accent-soft);
+      margin-bottom: 4px;
+    }
+
+    .hs-groupTitle {
+      font-weight: 600;
+      margin-top: 4px;
+      color: #c7cdf8;
+    }
+
+    .hs-line {
+      display: flex;
+      justify-content: space-between;
+      margin: 1px 0;
+      color: var(--text-muted);
+    }
+
+    .hs-line span:first-child {
+      margin-right: 8px;
+    }
+
+    /* Tutorial overlay */
+    #convertHelpOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+
+    #convertHelpOverlay.hidden { display: none; }
+
+    #convertHelpCard {
+      max-width: 380px;
+      width: 90%;
+      background: #0f1428;
+      border-radius: 12px;
+      border: 1px solid #3af2a3;
+      box-shadow: 0 0 20px rgba(0,0,0,0.8);
+      padding: 14px 16px 12px;
+      font-size: 0.9rem;
+      color: #f5f5f5;
+    }
+
+    #convertHelpCard h3 {
+      margin: 0 0 6px;
+      font-size: 1rem;
+      color: #3af2a3;
+    }
+
+    #convertHelpCard p {
+      margin: 4px 0;
+      line-height: 1.4;
+      color: #c9cff7;
+    }
+
+    #convertHelpCard ul {
+      margin: 4px 0 8px 18px;
+      padding: 0;
+      color: #c9cff7;
+      font-size: 0.86rem;
+    }
+
+    #convertHelpCard li { margin-bottom: 3px; }
+
+    #convertHelpCard .legend {
+      margin-top: 6px;
+      font-size: 0.82rem;
+    }
+
+    .legend span { font-weight: 600; }
+    .legend .binColour { color: var(--binary-colour); }
+    .legend .denColour { color: var(--denary-colour); }
+
+    #convertHelpClose {
+      margin-top: 8px;
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid #3af2a3;
+      background: #0b1530;
+      color: #f5f5f5;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    #convertHelpClose:hover { filter: brightness(1.1); }
+
+    @media (max-width: 780px) {
+      #gameContainer {
+        flex-direction: column;
+        align-items: center;
+      }
+      #rightColumn {
+        max-width: 440px;
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="header">
+    <img id="logo" src="logo_cs_comp.png" alt="Connolly's Count Like a Computer logo">
+    <div id="titleBlock">
+      <h1>CONNOLLY'S COUNT LIKE A COMPUTER</h1>
+      <p id="subtitle">Practise binary, denary, and hexadecimal thinking — just like a computer.</p>
+    </div>
+  </div>
+
+  <div id="shell">
+    <div id="topRow">
+      <section id="aboutPanel">
+        <div id="aboutTitle">
+          <span>About this game</span>
+          <div id="gameTag">CS • KS3 • Number Systems</div>
+        </div>
+        <p><strong>Connolly's Count Like a Computer</strong> is a classroom-friendly game where you practise binary, denary, and hexadecimal.</p>
+        <p>Questions fall from the top of the screen. Copy the calculation into your book, work it out using place-value rules, then type your answer before it hits the danger line.</p>
+        <p>You can choose arithmetic (+/− in binary), conversions between <strong>binary and denary</strong>, or stretch yourself with <strong>hexadecimal</strong>.</p>
+      </section>
+    </div>
+
+    <div id="gameContainer">
+      <div id="canvasWrapper">
+        <canvas id="gameCanvas" width="440" height="520"></canvas>
+      </div>
+
+      <div id="rightColumn">
+        <aside id="uiPanel">
+          <h2>
+            Controls
+            <span>Count Like a Computer</span>
+          </h2>
+          <div class="statRow">
+            <div class="statLabel">Mode:</div>
+            <div class="statValue" id="modeLabel">Addition</div>
+          </div>
+
+          <!-- Collapsible mode groups -->
+          <div class="mode-group" data-group="arith">
+            <div class="mode-group-header">
+              <span>Arithmetic (Binary)</span>
+              <div class="chevron">▾</div>
+            </div>
+            <div class="mode-group-body">
+              <div class="btn-row">
+                <button id="addModeBtn" class="active">Addition</button>
+                <button id="subModeBtn">Subtraction</button>
+                <button id="mixedArithBtn">Mixed + / −</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="mode-group collapsed" data-group="binDen">
+            <div class="mode-group-header">
+              <span>Binary ↔ Denary</span>
+              <div class="chevron">▸</div>
+            </div>
+            <div class="mode-group-body">
+              <div class="btn-row">
+                <button id="b2dBtn">Binary → Denary</button>
+                <button id="d2bBtn">Denary → Binary</button>
+                <button id="mixedBinDenBtn">Mixed Bin/Den</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="mode-group collapsed" data-group="hex">
+            <div class="mode-group-header">
+              <span>Hexadecimal</span>
+              <div class="chevron">▸</div>
+            </div>
+            <div class="mode-group-body">
+              <div class="btn-row">
+                <button id="h2dBtn">Hex → Denary</button>
+                <button id="d2hBtn">Denary → Hex</button>
+                <button id="b2hBtn">Binary → Hex</button>
+                <button id="h2bBtn">Hex → Binary</button>
+                <button id="mixedHexBtn">Mixed Hex</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="statRow">
+            <div class="statLabel">Score</div>
+            <div class="statValue" id="scoreSpan">0</div>
+          </div>
+          <div class="statRow">
+            <div class="statLabel">Lives</div>
+            <div class="statValue" id="livesSpan">3</div>
+          </div>
+          <div class="statRow">
+            <div class="statLabel">Speed</div>
+            <div class="statValue" id="speedSpan">1.0x</div>
+          </div>
+
+          <div class="divider"></div>
+
+          <label for="answerInput"><strong>Your answer</strong></label>
+          <input id="answerInput" autocomplete="off" placeholder="Binary, denary, or hex (A–F) depending on the question" />
+          <div class="hint">
+            Copy the question into your book, work it out, then type the answer.<br>
+            • Binary answers use <strong>only 0s and 1s</strong>.<br>
+            • Denary answers use digits <strong>0–9</strong>.<br>
+            • Hex answers can use <strong>0–9 and A–F</strong>.<br>
+            Press <code>Enter</code> to submit.
+          </div>
+
+          <div id="message"></div>
+
+          <div class="btn-row" style="margin-top:4px;">
+            <button id="resetBtn">Reset</button>
+          </div>
+
+          <div id="footer">
+            Tip: think in <em>powers of the base</em>. In binary each step left is ×2, in hex it's ×16. Carries and borrows follow those place values.
+          </div>
+
+          <div id="rulesRef">
+            <div id="rulesRefTitle">Number system reference</div>
+
+            <div class="rulesBlock">
+              <div class="rulesHeading">Binary addition (base 2)</div>
+              <div class="rulesLines">
+0 + 0 = 0
+0 + 1 = 1
+1 + 0 = 1
+1 + 1 = 0  (carry 1)
+1 + 1 + 1 = 1  (carry 1)</div>
+            </div>
+
+            <div class="rulesBlock" style="margin-top:6px;">
+              <div class="rulesHeading">Binary subtraction (base 2)</div>
+              <div class="rulesLines">
+0 − 0 = 0
+1 − 0 = 1
+1 − 1 = 0
+0 − 1 = 1  (borrow 1 = 10₂ = 2₁₀)</div>
+            </div>
+
+            <div class="rulesBlock" style="margin-top:6px;">
+              <div class="rulesHeading">Hex digits &amp; values</div>
+              <div class="rulesLines">
+Hex:  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
+            </div>
+          </div>
+        </aside>
+
+        <section id="highScoresPanel">
+          <div id="highScoresTitle">Highest score (this device)</div>
+          <div id="highScoresList"></div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Binary/Denary convert tutorial overlay -->
+  <div id="convertHelpOverlay" class="hidden">
+    <div id="convertHelpCard">
+      <h3>Binary ↔ Denary – Convert Mode</h3>
+      <p>These modes ask you to change numbers between binary (base 2) and denary (base 10).</p>
+      <ul>
+        <li><strong>Binary → Denary</strong>: e.g. <code>1011 → ? in Denary</code> → answer is a decimal number like <strong>11</strong>.</li>
+        <li><strong>Denary → Binary</strong>: e.g. <code>13 → ? in Binary</code> → answer is a binary number like <strong>1101</strong>.</li>
+      </ul>
+      <p class="legend">
+        Colour guide:<br>
+        <span class="denColour">• Blue question</span> → answer in <strong>Denary</strong> (0–9).<br>
+        <span class="binColour">• Green question</span> → answer in <strong>Binary</strong> (0s and 1s).
+      </p>
+      <button id="convertHelpClose">Got it</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const answerInput = document.getElementById('answerInput');
+    const scoreSpan = document.getElementById('scoreSpan');
+    const livesSpan = document.getElementById('livesSpan');
+    const speedSpan = document.getElementById('speedSpan');
+    const messageEl = document.getElementById('message');
+    const modeLabel = document.getElementById('modeLabel');
+
+    const addBtn = document.getElementById('addModeBtn');
+    const subBtn = document.getElementById('subModeBtn');
+    const mixedArithBtn = document.getElementById('mixedArithBtn');
+
+    const b2dBtn = document.getElementById('b2dBtn');
+    const d2bBtn = document.getElementById('d2bBtn');
+    const mixedBinDenBtn = document.getElementById('mixedBinDenBtn');
+
+    const h2dBtn = document.getElementById('h2dBtn');
+    const d2hBtn = document.getElementById('d2hBtn');
+    const b2hBtn = document.getElementById('b2hBtn');
+    const h2bBtn = document.getElementById('h2bBtn');
+    const mixedHexBtn = document.getElementById('mixedHexBtn');
+
+    const resetBtn = document.getElementById('resetBtn');
+
+    const convertHelpOverlay = document.getElementById('convertHelpOverlay');
+    const convertHelpClose = document.getElementById('convertHelpClose');
+
+    const modeGroups = document.querySelectorAll('.mode-group');
+    const highScoresListEl = document.getElementById('highScoresList');
+
+    const MODES = {
+      ADD: 'add',
+      SUB: 'sub',
+      MIXED_ARITH: 'mixed_arith',
+      B2D: 'b2d',
+      D2B: 'd2b',
+      MIXED_BIN_DEN: 'mixed_bin_den',
+      H2D: 'h2d',
+      D2H: 'd2h',
+      B2H: 'b2h',
+      H2B: 'h2b',
+      MIXED_HEX: 'mixed_hex'
+    };
+
+    const GROUPS = {
+      arithmetic: 'Arithmetic (Binary)',
+      binDen: 'Binary ↔ Denary',
+      hex: 'Hexadecimal'
+    };
+
+    const modeMeta = {
+      [MODES.ADD]:          { label: 'Addition',             group: 'arithmetic' },
+      [MODES.SUB]:          { label: 'Subtraction',          group: 'arithmetic' },
+      [MODES.MIXED_ARITH]:  { label: 'Mixed + / −',          group: 'arithmetic' },
+      [MODES.B2D]:          { label: 'Binary → Denary',      group: 'binDen' },
+      [MODES.D2B]:          { label: 'Denary → Binary',      group: 'binDen' },
+      [MODES.MIXED_BIN_DEN]:{ label: 'Mixed Bin/Den',        group: 'binDen' },
+      [MODES.H2D]:          { label: 'Hex → Denary',         group: 'hex' },
+      [MODES.D2H]:          { label: 'Denary → Hex',         group: 'hex' },
+      [MODES.B2H]:          { label: 'Binary → Hex',         group: 'hex' },
+      [MODES.H2B]:          { label: 'Hex → Binary',         group: 'hex' },
+      [MODES.MIXED_HEX]:    { label: 'Mixed Hex',            group: 'hex' }
+    };
+
+    const STORAGE_KEY = 'ccc_highscores_v1';
+
+    let mode = MODES.ADD;
+    let hasSeenConvertHelp = false;
+
+    let score = 0;
+    let lives = 3;
+    let speed = 1;
+    let spawnInterval = 9000;
+    let lastSpawn = 0;
+    let lastTime = 0;
+    let paused = false;
+
+    const problems = [];
+    const laneCount = 3;
+    const laneWidth = canvas.width / laneCount;
+
+    // high scores per mode
+    let highScores = {};
+    function loadHighScores() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          highScores = JSON.parse(raw);
+        }
+      } catch (e) {
+        highScores = {};
+      }
+      // ensure all keys exist
+      for (const m of Object.values(MODES)) {
+        if (typeof highScores[m] !== 'number') highScores[m] = 0;
+      }
+    }
+
+    function saveHighScores() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(highScores));
+      } catch (_) {}
+    }
+
+    function updateHighScoresDisplay() {
+      let html = '';
+      const order = ['arithmetic', 'binDen', 'hex'];
+      for (const g of order) {
+        html += `<div class="hs-groupTitle">${GROUPS[g]}</div>`;
+        for (const [key, meta] of Object.entries(modeMeta)) {
+          if (meta.group === g) {
+            html += `<div class="hs-line"><span>${meta.label}</span><span>${highScores[key] || 0}</span></div>`;
+          }
+        }
+      }
+      highScoresListEl.innerHTML = html;
+    }
+
+    function randomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function toBinary(n) { return n.toString(2); }
+    function toHex(n) { return n.toString(16).toUpperCase(); }
+    function padBinary(bin, width) { return bin.padStart(width, '0'); }
+
+    function generateProblem() {
+      const bits = randomInt(3, 5);
+      const maxVal = Math.pow(2, bits) - 1;
+      const lane = randomInt(0, laneCount - 1);
+
+      // Define answerType for colours/validation: 'binary' | 'denary' | 'hex'
+      let expr, answer, answerType;
+
+      // Helpers for hex ranges (keep values reasonable)
+      const hexMax = 255; // up to FF
+
+      switch (mode) {
+        case MODES.B2D: {
+          const val = randomInt(0, maxVal);
+          const bin = padBinary(toBinary(val), bits);
+          expr = bin + ' → ? in Denary';
+          answer = String(val);
+          answerType = 'denary';
+          break;
+        }
+        case MODES.D2B: {
+          const val = randomInt(0, maxVal);
+          expr = String(val) + ' → ? in Binary';
+          answer = toBinary(val);
+          answerType = 'binary';
+          break;
+        }
+        case MODES.MIXED_BIN_DEN: {
+          if (Math.random() < 0.5) {
+            const val = randomInt(0, maxVal);
+            const bin = padBinary(toBinary(val), bits);
+            expr = bin + ' → ? in Denary';
+            answer = String(val);
+            answerType = 'denary';
+          } else {
+            const val = randomInt(0, maxVal);
+            expr = String(val) + ' → ? in Binary';
+            answer = toBinary(val);
+            answerType = 'binary';
+          }
+          break;
+        }
+        case MODES.H2D: {
+          const val = randomInt(0, hexMax);
+          const hex = toHex(val);
+          expr = hex + ' → ? in Denary';
+          answer = String(val);
+          answerType = 'denary';
+          break;
+        }
+        case MODES.D2H: {
+          const val = randomInt(0, hexMax);
+          expr = String(val) + ' → ? in Hex';
+          answer = toHex(val);
+          answerType = 'hex';
+          break;
+        }
+        case MODES.B2H: {
+          const val = randomInt(0, hexMax);
+          const bin = toBinary(val);
+          expr = bin + ' → ? in Hex';
+          answer = toHex(val);
+          answerType = 'hex';
+          break;
+        }
+        case MODES.H2B: {
+          const val = randomInt(0, hexMax);
+          const hex = toHex(val);
+          expr = hex + ' → ? in Binary';
+          answer = toBinary(val);
+          answerType = 'binary';
+          break;
+        }
+        case MODES.MIXED_HEX: {
+          const choice = randomInt(0,3); // 0:H2D 1:D2H 2:B2H 3:H2B
+          const val = randomInt(0, hexMax);
+          if (choice === 0) {
+            const hex = toHex(val);
+            expr = hex + ' → ? in Denary';
+            answer = String(val);
+            answerType = 'denary';
+          } else if (choice === 1) {
+            expr = String(val) + ' → ? in Hex';
+            answer = toHex(val);
+            answerType = 'hex';
+          } else if (choice === 2) {
+            const bin = toBinary(val);
+            expr = bin + ' → ? in Hex';
+            answer = toHex(val);
+            answerType = 'hex';
+          } else {
+            const hex = toHex(val);
+            expr = hex + ' → ? in Binary';
+            answer = toBinary(val);
+            answerType = 'binary';
+          }
+          break;
+        }
+        default: {
+          // Arithmetic in binary
+          let op;
+          if (mode === MODES.MIXED_ARITH) {
+            op = Math.random() < 0.5 ? '+' : '-';
+          } else if (mode === MODES.ADD) {
+            op = '+';
+          } else {
+            op = '-';
+          }
+
+          let a, b, result;
+          if (op === '+') {
+            a = randomInt(0, Math.floor(maxVal / 2));
+            b = randomInt(0, Math.floor(maxVal / 2));
+            result = a + b;
+          } else {
+            a = randomInt(Math.floor(maxVal / 2), maxVal);
+            b = randomInt(0, a);
+            result = a - b;
+          }
+
+          const aBin = padBinary(toBinary(a), bits);
+          const bBin = padBinary(toBinary(b), bits);
+          const rBin = toBinary(result);
+
+          expr = aBin + ' ' + op + ' ' + bBin;
+          answer = rBin;
+          answerType = 'binary';
+        }
+      }
+
+      problems.push({
+        expr,
+        answer,
+        answerType,
+        lane,
+        y: -40,
+        speed: 10 + speed * 2
+      });
+    }
+
+    function setMessage(text, good=false) {
+      messageEl.textContent = text;
+      messageEl.className = good ? 'good' : (text ? 'bad' : '');
+    }
+
+    function update(dt) {
+      if (paused) return;
+
+      if (problems.length === 0 && performance.now() - lastSpawn > spawnInterval) {
+        generateProblem();
+        lastSpawn = performance.now();
+      }
+
+      for (let p of problems) {
+        p.y += p.speed * dt;
+      }
+
+      for (let i = problems.length - 1; i >= 0; i--) {
+        if (problems[i].y > canvas.height - 40) {
+          problems.splice(i, 1);
+          lives--;
+          livesSpan.textContent = lives;
+          setMessage('Missed one! Life lost.', false);
+          if (lives <= 0) gameOver();
+        }
+      }
+
+      if (score > 10) speed = 1.1;
+      if (score > 25) speed = 1.2;
+      speedSpan.textContent = speed.toFixed(1) + 'x';
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.strokeStyle = '#222b4a';
+      ctx.lineWidth = 1;
+      for (let i = 1; i < laneCount; i++) {
+        const x = i * laneWidth;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+
+      for (let p of problems) {
+        const x = p.lane * laneWidth;
+        const y = p.y;
+        const w = laneWidth - 8;
+        const h = 40;
+
+        ctx.fillStyle = '#151e3b';
+        ctx.strokeStyle = '#3af2a3';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(x + 4, y, w, h, 7);
+        } else {
+          ctx.rect(x + 4, y, w, h);
+        }
+        ctx.fill();
+        ctx.stroke();
+
+        let textColor = '#f5f5f5';
+        if (p.answerType === 'binary') textColor = getComputedStyle(document.documentElement).getPropertyValue('--binary-colour') || '#7fffb0';
+        if (p.answerType === 'denary') textColor = getComputedStyle(document.documentElement).getPropertyValue('--denary-colour') || '#7fb3ff';
+        if (p.answerType === 'hex')    textColor = getComputedStyle(document.documentElement).getPropertyValue('--hex-colour') || '#d29bff';
+
+        ctx.fillStyle = textColor;
+        ctx.font = '16px system-ui';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(p.expr, x + laneWidth / 2, y + h / 2);
+      }
+
+      ctx.strokeStyle = '#ff6b81';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, canvas.height - 30);
+      ctx.lineTo(canvas.width, canvas.height - 30);
+      ctx.stroke();
+    }
+
+    function gameLoop(timestamp) {
+      const dt = (timestamp - lastTime) / 1000;
+      lastTime = timestamp;
+      update(dt);
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function checkAnswer() {
+      const rawInput = answerInput.value.trim();
+      if (!rawInput) return;
+
+      if (problems.length === 0) {
+        setMessage('No falling questions yet — wait for the next one.', false);
+        return;
+      }
+
+      let target = problems[0];
+      for (let p of problems) {
+        if (p.y > target.y) target = p;
+      }
+
+      const answerType = target.answerType;
+
+      // Validate input based on expected answer type
+      if (answerType === 'denary') {
+        if (!/^[0-9]+$/.test(rawInput)) {
+          setMessage('Use decimal digits (0–9) for this question.', false);
+          return;
+        }
+      } else if (answerType === 'hex') {
+        if (!/^[0-9a-fA-F]+$/.test(rawInput)) {
+          setMessage('Use hex digits 0–9 and A–F.', false);
+          return;
+        }
+      } else { // binary
+        if (!/^[01]+$/.test(rawInput)) {
+          setMessage('Use only 0s and 1s for this question.', false);
+          return;
+        }
+      }
+
+      let cleanedInput, cleanedAnswer;
+      if (answerType === 'hex') {
+        cleanedInput  = rawInput.replace(/^0+/, '') || '0';
+        cleanedInput  = cleanedInput.toUpperCase();
+        cleanedAnswer = String(target.answer).replace(/^0+/, '') || '0';
+        cleanedAnswer = cleanedAnswer.toUpperCase();
+      } else {
+        cleanedInput  = rawInput.replace(/^0+/, '') || '0';
+        cleanedAnswer = String(target.answer).replace(/^0+/, '') || '0';
+      }
+
+      if (cleanedInput === cleanedAnswer) {
+        score += 1;
+        scoreSpan.textContent = score;
+        if (score > (highScores[mode] || 0)) {
+          highScores[mode] = score;
+          saveHighScores();
+          updateHighScoresDisplay();
+        }
+        const index = problems.indexOf(target);
+        if (index !== -1) problems.splice(index, 1);
+        setMessage('✅ Correct! Nice work.', true);
+        answerInput.value = '';
+      } else {
+        setMessage('❌ Not quite. Try again!', false);
+      }
+    }
+
+    function gameOver() {
+      paused = true;
+      setMessage('Game over! Press Reset to play again.', false);
+    }
+
+    function resetGame() {
+      score = 0;
+      lives = 3;
+      speed = 1;
+      spawnInterval = 9000;
+      lastSpawn = performance.now();
+      problems.length = 0;
+      paused = false;
+      scoreSpan.textContent = score;
+      livesSpan.textContent = lives;
+      speedSpan.textContent = speed.toFixed(1) + 'x';
+      setMessage('');
+      answerInput.value = '';
+    }
+
+    answerInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') checkAnswer();
+    });
+
+    resetBtn.addEventListener('click', resetGame);
+
+    function showConvertHelp() {
+      convertHelpOverlay.classList.remove('hidden');
+    }
+
+    convertHelpClose.addEventListener('click', () => {
+      convertHelpOverlay.classList.add('hidden');
+      hasSeenConvertHelp = true;
+    });
+
+    function clearActiveButtons() {
+      [
+        addBtn, subBtn, mixedArithBtn,
+        b2dBtn, d2bBtn, mixedBinDenBtn,
+        h2dBtn, d2hBtn, b2hBtn, h2bBtn, mixedHexBtn
+      ].forEach(btn => btn && btn.classList.remove('active'));
+    }
+
+    function setMode(newMode) {
+      mode = newMode;
+      clearActiveButtons();
+
+      if (mode === MODES.ADD) addBtn.classList.add('active');
+      if (mode === MODES.SUB) subBtn.classList.add('active');
+      if (mode === MODES.MIXED_ARITH) mixedArithBtn.classList.add('active');
+      if (mode === MODES.B2D) b2dBtn.classList.add('active');
+      if (mode === MODES.D2B) d2bBtn.classList.add('active');
+      if (mode === MODES.MIXED_BIN_DEN) mixedBinDenBtn.classList.add('active');
+      if (mode === MODES.H2D) h2dBtn.classList.add('active');
+      if (mode === MODES.D2H) d2hBtn.classList.add('active');
+      if (mode === MODES.B2H) b2hBtn.classList.add('active');
+      if (mode === MODES.H2B) h2bBtn.classList.add('active');
+      if (mode === MODES.MIXED_HEX) mixedHexBtn.classList.add('active');
+
+      modeLabel.textContent = modeMeta[mode].label || 'Mode';
+
+      resetGame();
+
+      if ((mode === MODES.B2D || mode === MODES.D2B || mode === MODES.MIXED_BIN_DEN) && !hasSeenConvertHelp) {
+        showConvertHelp();
+      }
+    }
+
+    // Mode buttons
+    addBtn.addEventListener('click', () => setMode(MODES.ADD));
+    subBtn.addEventListener('click', () => setMode(MODES.SUB));
+    mixedArithBtn.addEventListener('click', () => setMode(MODES.MIXED_ARITH));
+    b2dBtn.addEventListener('click', () => setMode(MODES.B2D));
+    d2bBtn.addEventListener('click', () => setMode(MODES.D2B));
+    mixedBinDenBtn.addEventListener('click', () => setMode(MODES.MIXED_BIN_DEN));
+    h2dBtn.addEventListener('click', () => setMode(MODES.H2D));
+    d2hBtn.addEventListener('click', () => setMode(MODES.D2H));
+    b2hBtn.addEventListener('click', () => setMode(MODES.B2H));
+    h2bBtn.addEventListener('click', () => setMode(MODES.H2B));
+    mixedHexBtn.addEventListener('click', () => setMode(MODES.MIXED_HEX));
+
+    // Collapsible groups
+    modeGroups.forEach(group => {
+      const header = group.querySelector('.mode-group-header');
+      const chevron = header.querySelector('.chevron');
+      header.addEventListener('click', () => {
+        const collapsed = group.classList.toggle('collapsed');
+        chevron.textContent = collapsed ? '▸' : '▾';
+      });
+    });
+
+    // Init
+    loadHighScores();
+    updateHighScoresDisplay();
+    resetGame();
+    answerInput.focus();
+    requestAnimationFrame(t => { lastTime = t; gameLoop(t); });
+  </script>
+</body>
+</html>
