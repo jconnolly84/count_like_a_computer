@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+head>
   <meta charset="UTF-8">
   <title>Connolly's Count Like a Computer</title>
   <style>
@@ -219,13 +219,6 @@
       display: block;
     }
 
-    .mode-instructions {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      margin: 3px 0 6px;
-      line-height: 1.4;
-    }
-
     .mode-group.collapsed .mode-group-body {
       display: none;
     }
@@ -376,31 +369,6 @@
       margin-right: 8px;
     }
 
-    #scoreHistoryTitle {
-      margin-top: 8px;
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      color: var(--accent-soft);
-    }
-
-    .history-line {
-      display: flex;
-      justify-content: space-between;
-      margin: 1px 0;
-      color: var(--text-muted);
-    }
-
-    .history-line span:first-child {
-      margin-right: 8px;
-    }
-
-    .history-empty {
-      margin-top: 2px;
-      color: var(--text-muted);
-      font-style: italic;
-    }
-
     /* Tutorial overlay */
     #convertHelpOverlay {
       position: fixed;
@@ -519,39 +487,31 @@
             <div class="statValue" id="modeLabel">Addition</div>
           </div>
 
-          <!-- Collapsible mode groups - reordered -->
-          <div class="mode-group" data-group="binDen">
+          <!-- Collapsible mode groups -->
+          <div class="mode-group" data-group="arith">
             <div class="mode-group-header">
-              <span>Binary ↔ Denary</span>
+              <span>Arithmetic (Binary)</span>
               <div class="chevron">▾</div>
             </div>
             <div class="mode-group-body">
-              <p class="mode-instructions">
-                Practise converting between binary (0s and 1s) and denary (ordinary decimal numbers).
-                Your answer will be either a binary or a denary number depending on the mode you pick.
-              </p>
-              <div class="btn-row">
-                <button id="b2dBtn">Binary → Denary</button>
-                <button id="d2bBtn">Denary → Binary</button>
-                <button id="mixedBinDenBtn">Mixed Bin/Den</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="mode-group collapsed" data-group="arith">
-            <div class="mode-group-header">
-              <span>Arithmetic (Binary)</span>
-              <div class="chevron">▸</div>
-            </div>
-            <div class="mode-group-body">
-              <p class="mode-instructions">
-                Answer binary addition and subtraction questions. Use the place-value rules of base 2 and
-                remember that 1 + 1 = 10₂, and you may need to borrow when subtracting.
-              </p>
               <div class="btn-row">
                 <button id="addModeBtn" class="active">Addition</button>
                 <button id="subModeBtn">Subtraction</button>
                 <button id="mixedArithBtn">Mixed + / −</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="mode-group collapsed" data-group="binDen">
+            <div class="mode-group-header">
+              <span>Binary ↔ Denary</span>
+              <div class="chevron">▸</div>
+            </div>
+            <div class="mode-group-body">
+              <div class="btn-row">
+                <button id="b2dBtn">Binary → Denary</button>
+                <button id="d2bBtn">Denary → Binary</button>
+                <button id="mixedBinDenBtn">Mixed Bin/Den</button>
               </div>
             </div>
           </div>
@@ -562,10 +522,6 @@
               <div class="chevron">▸</div>
             </div>
             <div class="mode-group-body">
-              <p class="mode-instructions">
-                Work with hexadecimal (base 16) using digits 0–9 and A–F. Convert between hex, denary and
-                binary to stretch your understanding of number systems.
-              </p>
               <div class="btn-row">
                 <button id="h2dBtn">Hex → Denary</button>
                 <button id="d2hBtn">Denary → Hex</button>
@@ -587,8 +543,8 @@
             <div class="statValue" id="livesSpan">3</div>
           </div>
           <div class="statRow">
-            <div class="statLabel">Speed</div>
-            <div class="statValue" id="speedSpan">1.0x</div>
+            <div class="statLabel">Speed (Level)</div>
+            <div class="statValue" id="speedSpan">1</div>
           </div>
 
           <div class="divider"></div>
@@ -647,8 +603,6 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
         <section id="highScoresPanel">
           <div id="highScoresTitle">Highest score (this device)</div>
           <div id="highScoresList"></div>
-          <div id="scoreHistoryTitle">Recent scores (this browser)</div>
-          <div id="scoreHistoryList"></div>
         </section>
       </div>
     </div>
@@ -704,7 +658,6 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
 
     const modeGroups = document.querySelectorAll('.mode-group');
     const highScoresListEl = document.getElementById('highScoresList');
-    const scoreHistoryListEl = document.getElementById('scoreHistoryList');
 
     const MODES = {
       ADD: 'add',
@@ -741,38 +694,6 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
     };
 
     const STORAGE_KEY = 'ccc_highscores_v1';
-    const HISTORY_KEY = 'ccc_score_history_v1';
-
-    let scoreHistory = [];
-
-    function loadScoreHistory() {
-      try {
-        const raw = localStorage.getItem(HISTORY_KEY);
-        if (raw) {
-          scoreHistory = JSON.parse(raw);
-        }
-      } catch (e) {
-        scoreHistory = [];
-      }
-    }
-
-    function saveScoreHistory() {
-      try {
-        localStorage.setItem(HISTORY_KEY, JSON.stringify(scoreHistory));
-      } catch (_) {}
-    }
-
-    function updateScoreHistoryDisplay() {
-      if (!scoreHistory.length) {
-        scoreHistoryListEl.innerHTML = '<div class="history-empty">No previous scores yet.</div>';
-        return;
-      }
-      let html = '';
-      for (const entry of scoreHistory) {
-        html += `<div class="history-line"><span>${entry.mode}</span><span>${entry.score}</span></div>`;
-      }
-      scoreHistoryListEl.innerHTML = html;
-    }
 
     let mode = MODES.ADD;
     let hasSeenConvertHelp = false;
@@ -780,7 +701,7 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
     let score = 0;
     let lives = 3;
     let speed = 1;
-    let runRecorded = false;
+    let difficultyLevel = 1;
     let spawnInterval = 9000;
     let lastSpawn = 0;
     let lastTime = 0;
@@ -801,7 +722,6 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
       } catch (e) {
         highScores = {};
       }
-      // ensure all keys exist
       for (const m of Object.values(MODES)) {
         if (typeof highScores[m] !== 'number') highScores[m] = 0;
       }
@@ -827,18 +747,6 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
       highScoresListEl.innerHTML = html;
     }
 
-    function recordRunScore() {
-      if (runRecorded || score <= 0) return;
-      const label = (modeMeta[mode] && modeMeta[mode].label) ? modeMeta[mode].label : 'Unknown mode';
-      scoreHistory.unshift({ mode: label, score: score });
-      if (scoreHistory.length > 12) {
-        scoreHistory.pop();
-      }
-      saveScoreHistory();
-      updateScoreHistoryDisplay();
-      runRecorded = true;
-    }
-
     function randomInt(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
@@ -848,15 +756,16 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
     function padBinary(bin, width) { return bin.padStart(width, '0'); }
 
     function generateProblem() {
-      const bits = randomInt(3, 5);
+      // bits grow with difficulty: 3,4,5,6,7
+      const bits = Math.min(3 + Math.floor((difficultyLevel - 1) / 2), 7);
       const maxVal = Math.pow(2, bits) - 1;
+
+      // hex values also grow with difficulty, up to 255 (FF)
+      const hexMax = Math.min(15 + difficultyLevel * 16, 255);
+
       const lane = randomInt(0, laneCount - 1);
 
-      // Define answerType for colours/validation: 'binary' | 'denary' | 'hex'
       let expr, answer, answerType;
-
-      // Helpers for hex ranges (keep values reasonable)
-      const hexMax = 255; // up to FF
 
       switch (mode) {
         case MODES.B2D: {
@@ -921,7 +830,7 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
           break;
         }
         case MODES.MIXED_HEX: {
-          const choice = randomInt(0,3); // 0:H2D 1:D2H 2:B2H 3:H2B
+          const choice = randomInt(0, 3); // 0:H2D 1:D2H 2:B2H 3:H2B
           const val = randomInt(0, hexMax);
           if (choice === 0) {
             const hex = toHex(val);
@@ -983,7 +892,7 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
         answerType,
         lane,
         y: -40,
-        speed: 10 + speed * 2
+        speed: 20 + speed * 6   // uses current difficulty-based speed
       });
     }
 
@@ -1014,9 +923,19 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
         }
       }
 
-      if (score > 10) speed = 1.1;
-      if (score > 25) speed = 1.2;
-      speedSpan.textContent = speed.toFixed(1) + 'x';
+      // Difficulty scaling:
+      // every 5 correct answers increases level by 1
+      difficultyLevel = 1 + Math.floor(score / 5);
+      if (difficultyLevel < 1) difficultyLevel = 1;
+
+      // speed multiplier = difficulty level
+      speed = difficultyLevel;
+
+      // spawn interval decreases with difficulty (down to 3500 ms)
+      spawnInterval = Math.max(3500, 9000 - (difficultyLevel - 1) * 600);
+
+      // show difficulty level in UI
+      speedSpan.textContent = String(difficultyLevel);
     }
 
     function draw() {
@@ -1051,9 +970,10 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
         ctx.stroke();
 
         let textColor = '#f5f5f5';
-        if (p.answerType === 'binary') textColor = getComputedStyle(document.documentElement).getPropertyValue('--binary-colour') || '#7fffb0';
-        if (p.answerType === 'denary') textColor = getComputedStyle(document.documentElement).getPropertyValue('--denary-colour') || '#7fb3ff';
-        if (p.answerType === 'hex')    textColor = getComputedStyle(document.documentElement).getPropertyValue('--hex-colour') || '#d29bff';
+        const rootStyles = getComputedStyle(document.documentElement);
+        if (p.answerType === 'binary') textColor = rootStyles.getPropertyValue('--binary-colour') || '#7fffb0';
+        if (p.answerType === 'denary') textColor = rootStyles.getPropertyValue('--denary-colour') || '#7fb3ff';
+        if (p.answerType === 'hex')    textColor = rootStyles.getPropertyValue('--hex-colour') || '#d29bff';
 
         ctx.fillStyle = textColor;
         ctx.font = '16px system-ui';
@@ -1094,7 +1014,6 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
 
       const answerType = target.answerType;
 
-      // Validate input based on expected answer type
       if (answerType === 'denary') {
         if (!/^[0-9]+$/.test(rawInput)) {
           setMessage('Use decimal digits (0–9) for this question.', false);
@@ -1105,7 +1024,7 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
           setMessage('Use hex digits 0–9 and A–F.', false);
           return;
         }
-      } else { // binary
+      } else {
         if (!/^[01]+$/.test(rawInput)) {
           setMessage('Use only 0s and 1s for this question.', false);
           return;
@@ -1142,24 +1061,21 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
 
     function gameOver() {
       paused = true;
-      recordRunScore();
       setMessage('Game over! Press Reset to play again.', false);
     }
 
     function resetGame() {
-      // store the score from the previous run (if there was one)
-      recordRunScore();
       score = 0;
       lives = 3;
       speed = 1;
+      difficultyLevel = 1;
       spawnInterval = 9000;
       lastSpawn = performance.now();
       problems.length = 0;
       paused = false;
-      runRecorded = false;
       scoreSpan.textContent = score;
       livesSpan.textContent = lives;
-      speedSpan.textContent = speed.toFixed(1) + 'x';
+      speedSpan.textContent = String(difficultyLevel);
       setMessage('');
       answerInput.value = '';
     }
@@ -1212,7 +1128,6 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
       }
     }
 
-    // Mode buttons
     addBtn.addEventListener('click', () => setMode(MODES.ADD));
     subBtn.addEventListener('click', () => setMode(MODES.SUB));
     mixedArithBtn.addEventListener('click', () => setMode(MODES.MIXED_ARITH));
@@ -1238,8 +1153,6 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
     // Init
     loadHighScores();
     updateHighScoresDisplay();
-    loadScoreHistory();
-    updateScoreHistoryDisplay();
     resetGame();
     answerInput.focus();
     requestAnimationFrame(t => { lastTime = t; gameLoop(t); });
