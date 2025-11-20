@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Connolly's Count Like a Computer</title>
+  <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+    <div id="header">
+    <div id="titleBar">
+      <img id="logo" src="logo_cs_comp.png" alt="Connolly's Count Like a Computer logo">
+      <div id="titleText">
+        <h1>CONNOLLY'S COUNT LIKE A COMPUTER</h1>
+        <p id="subtitle">Practise binary, denary, and hexadecimal thinking — just like a computer.</p>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div id="shell">
+    <div id="topRow">
+      <section id="aboutPanel">
+        <div id="aboutTitle">
+          <span>About this game</span>
+          <div id="gameTag">CS • KS3 • Number Systems</div>
+        </div>
+        <p><strong>Connolly's Count Like a Computer</strong> is a classroom-friendly game where you practise binary, denary, and hexadecimal.</p>
+        <p>Questions fall from the top of the screen. Copy the calculation into your book, work it out using place-value rules, then type your answer before it hits the danger line.</p>
+        <p>You can choose conversions between <strong>binary and denary</strong>, arithmetic in <strong>binary</strong>, stretch yourself with <strong>hexadecimal</strong>, or try to survive <strong>Master Mode</strong>.</p>
+      </section>
+    </div>
+    
+<div id="gameContainer">
+
+      <!-- GAME CANVAS -->
+      <div id="canvasWrapper">
+        <canvas id="gameCanvas" width="520" height="640"></canvas>
+        <div id="levelBanner"></div>
+      </div>
+
+      <!-- RIGHT SIDEBAR: MODES, CONTROLS, DIFFICULTY -->
+      <div id="rightColumn">
+        <aside id="uiPanel">
+          <h2>
+            Modes & Settings
+            <span>Game Controls</span>
+          </h2>
+
+          <!-- Stats -->
+          <div class="statRow"><span class="statLabel">Mode:</span><span class="statValue" id="modeLabel">Binary → Denary</span></div>
+          <div class="statRow"><span class="statLabel">Score:</span><span class="statValue" id="scoreSpan">0</span></div>
+          <div class="statRow"><span class="statLabel">Lives:</span><span class="statValue" id="livesSpan">3</span></div>
+          <div class="statRow"><span class="statLabel">Level:</span><span class="statValue" id="levelSpan">1</span></div>
+          <div class="statRow"><span class="statLabel">Multiplier:</span><span class="statValue" id="multiplierSpan">×1</span></div>
+
+          <div class="divider"></div>
+
+          <!-- Difficulty selector -->
+          <label for="difficultySelect"><strong>Starting Difficulty</strong></label>
+          <select id="difficultySelect">
+            <option value="1">Easy (Lv 1)</option>
+            <option value="2">Normal (Lv 2)</option>
+            <option value="3">Hard (Lv 3)</option>
+            <option value="4">Extreme (Lv 4)</option>
+            <option value="6">Insane (Lv 6)</option>
+          </select>
+
+          <div class="divider"></div>
+
+          <!-- MODE GROUPS -->
+          <!-- All OPEN by default (NO collapsed class) -->
+
+          <!-- BINARY ↔ DENARY -->
+          <div class="mode-group" data-group="binDen">
+            <div class="mode-group-header">
+              <span>Binary ↔ Denary</span>
+            </div>
+            <div class="mode-group-body">
+              <div class="btn-row">
+                <button id="b2dBtn">Binary → Denary</button>
+                <button id="d2bBtn">Denary → Binary</button>
+                <button id="mixedBinDenBtn">Mixed Bin/Den</button>
+              </div>
+
+              <div class="btn-row">
+                <button class="help-btn help-bin" id="binDenHelpBtn">Section Help</button>
+                <button class="link-btn help-bin" onclick="window.open('https://www.nibblz.co.uk/binary-logic','_blank')">Help with this section (Nibblz)</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- BINARY ARITHMETIC -->
+          <div class="mode-group" data-group="arith">
+            <div class="mode-group-header">
+              <span>Arithmetic (Binary)</span>
+            </div>
+            <div class="mode-group-body">
+              <div class="btn-row">
+                <button id="addModeBtn">Addition</button>
+                <button id="subModeBtn">Subtraction</button>
+                <button id="mixedArithBtn">Mixed + / −</button>
+              </div>
+
+              <div class="btn-row">
+                <button class="help-btn help-arith" id="arithHelpBtn">Section Help</button>
+                <button class="link-btn help-arith" onclick="window.open('https://www.nibblz.co.uk/binary-logic-l2','_blank')">Help with this section (Nibblz)</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- HEXADECIMAL -->
+          <div class="mode-group" data-group="hex">
+            <div class="mode-group-header">
+              <span>Hexadecimal</span>
+            </div>
+            <div class="mode-group-body">
+              <div class="btn-row">
+                <button id="h2dBtn">Hex → Denary</button>
+                <button id="d2hBtn">Denary → Hex</button>
+                <button id="b2hBtn">Binary → Hex</button>
+                <button id="h2bBtn">Hex → Binary</button>
+                <button id="mixedHexBtn">Mixed Hex</button>
+              </div>
+
+              <div class="btn-row">
+                <button class="help-btn help-hex" id="hexHelpBtn">Section Help</button>
+                <button class="link-btn help-hex" onclick="window.open('https://www.nibblz.co.uk/binary-logic-l3','_blank')">Help with this section (Nibblz)</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- MASTER MODE -->
+          <div class="mode-group" data-group="master">
+            <div class="mode-group-header">
+              <span>Special Modes</span>
+            </div>
+            <div class="mode-group-body">
+              <div class="btn-row">
+                <button id="masterModeBtn">Master Mode (All Skills)</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- Reset + Mode Guide -->
+          <div class="btn-row">
+            <button id="resetBtn">Reset Run</button>
+            <button id="modeHelpBtn">Mode Guide</button>
+          </div>
+
+        </aside>
+      </div> <!-- END rightColumn -->
+    </div> <!-- END gameContainer -->
+
+
+    <!-- ANSWER PANEL (UNDER THE GAME) -->
+    <div id="answerPanel">
+      <div id="answerCard">
+        <label for="answerInput"><strong>Your answer</strong></label>
+        <input id="answerInput" autocomplete="off"
+               placeholder="Type your answer…"
+        />
+
+        <div class="hint">
+          • Binary → only <strong>0</strong> and <strong>1</strong><br>
+          • Denary → digits <strong>0–9</strong><br>
+          • Hex → digits <strong>0–9</strong> and letters <strong>A–F</strong><br>
+          Press <code>Enter</code> to submit.
+        </div>
+
+        <div id="message"></div>
+        <button id="rulesToggleBtn">Show Rules</button>
+      </div>
+    </div>
+
+
+    <!-- RULES + HIGH SCORES -->
+    <div id="infoRow">
+
+      <!-- RULES -->
+      <section id="rulesRef">
+        <div id="rulesRefTitle">Quick Reference</div>
+
+        <div class="rulesBlock">
+          <div class="rulesHeading">Binary Addition</div>
+          <div class="rulesLines">
+1 + 0 → 1
+0 + 1 → 1
+1 + 1 → 0 carry 1
+1 + 1 + 1 → 1 carry 1
+          </div>
+        </div>
+
+        <div class="rulesBlock">
+          <div class="rulesHeading">Binary Subtraction</div>
+          <div class="rulesLines">
+1 − 0 → 1
+1 − 1 → 0
+0 − 1 → borrow (worth 2)
+          </div>
+        </div>
+
+        <div class="rulesBlock">
+          <div class="rulesHeading">Hex Digits</div>
+          <div class="rulesLines">
+0 1 2 3 4 5 6 7 8 9 A B C D E F
+          </div>
+        </div>
+
+      </section>
+
+
+      <!-- HIGH SCORES -->
+      <section id="highScoresPanel">
+        <div id="highScoresTitle">Highest Scores</div>
+        <div id="highScoresList"></div>
+      </section>
+
+    </div> <!-- END infoRow -->
+
+<!-- 🔥 POPUP: MODE HELP -->
+    <div id="modeHelpOverlay" class="overlay hidden">
+      <div class="overlay-card">
+        <h3>Mode Guide</h3>
+        <p>Select what you want to practise:</p>
+        <ul>
+          <li><strong>Binary ↔ Denary</strong>: Convert numbers using place values.</li>
+          <li><strong>Arithmetic (Binary)</strong>: Add or subtract using binary rules.</li>
+          <li><strong>Hexadecimal</strong>: Convert using 0–9 and A–F.</li>
+          <li><strong>Master Mode</strong>: All question types mixed!</li>
+        </ul>
+        <button class="overlay-close" onclick="closeModeHelp()">Close</button>
+      </div>
+    </div>
+
+    <!-- POPUP: BIN/DEN HELP -->
+    <div id="binDenHelpOverlay" class="overlay hidden">
+      <div class="overlay-card">
+        <h3>Binary ↔ Denary Help</h3>
+        <p>Binary uses place values: 1, 2, 4, 8, 16, 32...<br>
+        Add up the values under each 1.</p>
+        <button class="overlay-close" onclick="closeBinDenHelp()">Close</button>
+      </div>
+    </div>
+
+    <!-- POPUP: BINARY ARITHMETIC HELP -->
+    <div id="arithHelpOverlay" class="overlay hidden">
+      <div class="overlay-card">
+        <h3>Binary Arithmetic Help</h3>
+        <p>Use these:</p>
+        <ul>
+          <li>1 + 1 → 0 carry 1</li>
+          <li>0 − 1 → borrow (worth 2)</li>
+        </ul>
+        <button class="overlay-close" onclick="closeArithHelp()">Close</button>
+      </div>
+    </div>
+
+    <!-- POPUP: HEX HELP -->
+    <div id="hexHelpOverlay" class="overlay hidden">
+      <div class="overlay-card">
+        <h3>Hexadecimal Help</h3>
+        <p>Hex digits go from 0 to F.<br>A=10, B=11, C=12, D=13, E=14, F=15.</p>
+        <button class="overlay-close" onclick="closeHexHelp()">Close</button>
+      </div>
+    </div>
+
+    <!-- GAME OVER POPUP -->
+    <div id="gameOverOverlay" class="overlay hidden">
+      <div class="overlay-card" id="gameOverCard">
+        <h3 id="gameOverTitle">Game Over</h3>
+        <div id="gameOverMedal"></div>
+        <p id="gameOverStats"></p>
+        <button class="overlay-close" onclick="closeGameOver()">Try Again</button>
+      </div>
+    </div>
+  <script src="script.js"></script>
+</body>
+</html>
