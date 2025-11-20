@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-head>
+<head>
   <meta charset="UTF-8">
   <title>Connolly's Count Like a Computer</title>
   <style>
@@ -18,6 +18,12 @@ head>
       --binary-colour: #7fffb0;
       --denary-colour: #7fb3ff;
       --hex-colour: #d29bff;
+      --medal-bronze: #cd7f32;
+      --medal-silver: #c0c0c0;
+      --medal-gold: #ffd700;
+      --medal-platinum: #e5e4e2;
+      --medal-diamond: #7df9ff;
+      --medal-legend: #ff7de5;
     }
 
     * { box-sizing: border-box; }
@@ -69,7 +75,7 @@ head>
       display: flex;
       flex-direction: column;
       gap: 12px;
-      max-width: 980px;
+      max-width: 1040px;
       width: 100%;
       align-items: stretch;
     }
@@ -128,13 +134,42 @@ head>
       align-items: flex-start;
     }
 
-    #canvasWrapper { position: relative; flex: 0 1 440px; }
+    #canvasWrapper {
+      position: relative;
+      flex: 0 1 600px;
+    }
 
     canvas {
       background: radial-gradient(circle at top, #131834 0, #050813 55%, #02030a 100%);
       border-radius: 12px;
       border: 2px solid #263057;
       box-shadow: 0 0 22px rgba(0, 0, 0, 0.7);
+    }
+
+    #levelBanner {
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-10px);
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(58, 242, 163, 0.14);
+      border: 1px solid rgba(58, 242, 163, 0.7);
+      color: #f5f5f5;
+      font-size: 0.86rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      text-shadow: 0 0 8px rgba(58, 242, 163, 0.5);
+      text-align: center;
+      max-width: 90%;
+    }
+
+    #levelBanner.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
     }
 
     #rightColumn {
@@ -185,6 +220,16 @@ head>
     .statValue { font-weight: 600; }
     #modeLabel { color: var(--accent-soft); }
 
+    #difficultySelect {
+      width: 100%;
+      padding: 4px 6px;
+      border-radius: 6px;
+      border: 1px solid #3af2a3;
+      background: #050813;
+      color: #f5f5f5;
+      font-size: 0.82rem;
+    }
+
     .mode-group {
       margin-top: 6px;
       border-radius: 8px;
@@ -199,7 +244,6 @@ head>
       display: flex;
       justify-content: space-between;
       align-items: center;
-      cursor: pointer;
       user-select: none;
     }
 
@@ -209,24 +253,15 @@ head>
       color: var(--text-muted);
     }
 
-    .mode-group-header .chevron {
-      font-size: 0.9rem;
-      opacity: 0.7;
-    }
-
     .mode-group-body {
       padding: 6px 6px 8px;
-      display: block;
-    }
-
-    .mode-group.collapsed .mode-group-body {
-      display: none;
     }
 
     .btn-row {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
+      margin-bottom: 4px;
     }
 
     button {
@@ -249,6 +284,20 @@ head>
 
     button:hover { filter: brightness(1.1); transform: translateY(-1px); }
     button:active { transform: translateY(0); box-shadow: none; }
+
+    .help-btn {
+      font-size: 0.74rem;
+      padding: 3px 7px;
+    }
+    .help-arith { border-color: #7fb3ff; }
+    .help-bin   { border-color: #3af2a3; }
+    .help-hex   { border-color: #d29bff; }
+
+    .link-btn {
+      font-size: 0.74rem;
+      padding: 3px 7px;
+      border-style: dashed;
+    }
 
     label {
       font-size: 0.84rem;
@@ -309,7 +358,7 @@ head>
     }
 
     #rulesRef {
-      margin-top: 10px;
+      margin-top: 0;
       padding: 8px 9px;
       border-radius: 8px;
       background: rgba(5, 9, 25, 0.85);
@@ -365,12 +414,20 @@ head>
       color: var(--text-muted);
     }
 
-    .hs-line span:first-child {
-      margin-right: 8px;
+    .hs-line span:first-child { margin-right: 8px; }
+
+    #infoRow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
     }
 
-    /* Tutorial overlay */
-    #convertHelpOverlay {
+    #infoRow > * {
+      flex: 1 1 320px;
+    }
+
+    .overlay {
       position: fixed;
       inset: 0;
       background: rgba(0,0,0,0.7);
@@ -379,11 +436,10 @@ head>
       justify-content: center;
       z-index: 999;
     }
+    .overlay.hidden { display: none; }
 
-    #convertHelpOverlay.hidden { display: none; }
-
-    #convertHelpCard {
-      max-width: 380px;
+    .overlay-card {
+      max-width: 420px;
       width: 90%;
       background: #0f1428;
       border-radius: 12px;
@@ -393,38 +449,24 @@ head>
       font-size: 0.9rem;
       color: #f5f5f5;
     }
-
-    #convertHelpCard h3 {
+    .overlay-card h3 {
       margin: 0 0 6px;
       font-size: 1rem;
       color: #3af2a3;
     }
-
-    #convertHelpCard p {
+    .overlay-card p {
       margin: 4px 0;
       line-height: 1.4;
       color: #c9cff7;
     }
-
-    #convertHelpCard ul {
+    .overlay-card ul {
       margin: 4px 0 8px 18px;
       padding: 0;
       color: #c9cff7;
       font-size: 0.86rem;
     }
-
-    #convertHelpCard li { margin-bottom: 3px; }
-
-    #convertHelpCard .legend {
-      margin-top: 6px;
-      font-size: 0.82rem;
-    }
-
-    .legend span { font-weight: 600; }
-    .legend .binColour { color: var(--binary-colour); }
-    .legend .denColour { color: var(--denary-colour); }
-
-    #convertHelpClose {
+    .overlay-card li { margin-bottom: 3px; }
+    .overlay-close {
       margin-top: 8px;
       display: inline-block;
       padding: 5px 10px;
@@ -435,7 +477,26 @@ head>
       cursor: pointer;
       font-size: 0.8rem;
     }
-    #convertHelpClose:hover { filter: brightness(1.1); }
+    .overlay-close:hover { filter: brightness(1.1); }
+
+    #gameOverCard {
+      border-color: #ffd700;
+      text-align: center;
+    }
+    #gameOverTitle {
+      font-size: 1.1rem;
+      margin-bottom: 4px;
+    }
+    #gameOverMedal {
+      font-weight: 700;
+      margin: 3px 0;
+    }
+    .medal-bronze { color: var(--medal-bronze); }
+    .medal-silver { color: var(--medal-silver); }
+    .medal-gold { color: var(--medal-gold); }
+    .medal-platinum { color: var(--medal-platinum); }
+    .medal-diamond { color: var(--medal-diamond); }
+    .medal-legend { color: var(--medal-legend); }
 
     @media (max-width: 780px) {
       #gameContainer {
@@ -443,8 +504,11 @@ head>
         align-items: center;
       }
       #rightColumn {
-        max-width: 440px;
+        max-width: 600px;
         width: 100%;
+      }
+      #canvasWrapper {
+        flex: 1 1 auto;
       }
     }
   </style>
@@ -467,13 +531,13 @@ head>
         </div>
         <p><strong>Connolly's Count Like a Computer</strong> is a classroom-friendly game where you practise binary, denary, and hexadecimal.</p>
         <p>Questions fall from the top of the screen. Copy the calculation into your book, work it out using place-value rules, then type your answer before it hits the danger line.</p>
-        <p>You can choose arithmetic (+/− in binary), conversions between <strong>binary and denary</strong>, or stretch yourself with <strong>hexadecimal</strong>.</p>
+        <p>You can choose conversions between <strong>binary and denary</strong>, arithmetic in <strong>binary</strong>, stretch yourself with <strong>hexadecimal</strong>, or try to survive <strong>Master Mode</strong>.</p>
       </section>
     </div>
-
     <div id="gameContainer">
       <div id="canvasWrapper">
-        <canvas id="gameCanvas" width="440" height="520"></canvas>
+        <canvas id="gameCanvas" width="600" height="520"></canvas>
+        <div id="levelBanner">SYSTEM UPGRADE: LEVEL 1 – BOOT SEQUENCE</div>
       </div>
 
       <div id="rightColumn">
@@ -484,56 +548,8 @@ head>
           </h2>
           <div class="statRow">
             <div class="statLabel">Mode:</div>
-            <div class="statValue" id="modeLabel">Addition</div>
+            <div class="statValue" id="modeLabel">Binary → Denary</div>
           </div>
-
-          <!-- Collapsible mode groups -->
-          <div class="mode-group" data-group="arith">
-            <div class="mode-group-header">
-              <span>Arithmetic (Binary)</span>
-              <div class="chevron">▾</div>
-            </div>
-            <div class="mode-group-body">
-              <div class="btn-row">
-                <button id="addModeBtn" class="active">Addition</button>
-                <button id="subModeBtn">Subtraction</button>
-                <button id="mixedArithBtn">Mixed + / −</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="mode-group collapsed" data-group="binDen">
-            <div class="mode-group-header">
-              <span>Binary ↔ Denary</span>
-              <div class="chevron">▸</div>
-            </div>
-            <div class="mode-group-body">
-              <div class="btn-row">
-                <button id="b2dBtn">Binary → Denary</button>
-                <button id="d2bBtn">Denary → Binary</button>
-                <button id="mixedBinDenBtn">Mixed Bin/Den</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="mode-group collapsed" data-group="hex">
-            <div class="mode-group-header">
-              <span>Hexadecimal</span>
-              <div class="chevron">▸</div>
-            </div>
-            <div class="mode-group-body">
-              <div class="btn-row">
-                <button id="h2dBtn">Hex → Denary</button>
-                <button id="d2hBtn">Denary → Hex</button>
-                <button id="b2hBtn">Binary → Hex</button>
-                <button id="h2bBtn">Hex → Binary</button>
-                <button id="mixedHexBtn">Mixed Hex</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="divider"></div>
-
           <div class="statRow">
             <div class="statLabel">Score</div>
             <div class="statValue" id="scoreSpan">0</div>
@@ -543,8 +559,90 @@ head>
             <div class="statValue" id="livesSpan">3</div>
           </div>
           <div class="statRow">
-            <div class="statLabel">Speed (Level)</div>
-            <div class="statValue" id="speedSpan">1</div>
+            <div class="statLabel">Level</div>
+            <div class="statValue" id="levelSpan">1</div>
+          </div>
+          <div class="statRow">
+            <div class="statLabel">Score multiplier</div>
+            <div class="statValue" id="multiplierSpan">×1</div>
+          </div>
+
+          <div class="divider"></div>
+
+          <label for="difficultySelect"><strong>Difficulty</strong></label>
+          <select id="difficultySelect">
+            <option value="1">Easy (Lv 1)</option>
+            <option value="2">Normal (Lv 2)</option>
+            <option value="3">Hard (Lv 3)</option>
+            <option value="4">Extreme (Lv 4)</option>
+            <option value="6">Insane (Lv 6)</option>
+          </select>
+          <div class="hint">Higher difficulty starts at a higher level = faster falls, tougher questions, bigger multipliers.</div>
+
+          <div class="divider"></div>
+
+          <div class="mode-group" data-group="binDen">
+            <div class="mode-group-header">
+              <span>Binary ↔ Denary</span>
+            </div>
+            <div class="mode-group-body">
+              <div class="btn-row">
+                <button id="b2dBtn" class="active">Binary → Denary</button>
+                <button id="d2bBtn">Denary → Binary</button>
+                <button id="mixedBinDenBtn">Mixed Bin/Den</button>
+              </div>
+              <div class="btn-row">
+                <button id="binHelpBtn" class="help-btn help-bin">Help: Binary ↔ Denary</button>
+                <button class="link-btn help-bin" onclick="window.open('https://www.nibblz.co.uk/binary-logic','_blank')">Help with this section (Nibblz)</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="mode-group" data-group="arith">
+            <div class="mode-group-header">
+              <span>Arithmetic (Binary)</span>
+            </div>
+            <div class="mode-group-body">
+              <div class="btn-row">
+                <button id="addModeBtn">Addition</button>
+                <button id="subModeBtn">Subtraction</button>
+                <button id="mixedArithBtn">Mixed + / −</button>
+              </div>
+              <div class="btn-row">
+                <button id="arithHelpBtn" class="help-btn help-arith">Help: Binary arithmetic</button>
+                <button class="link-btn help-arith" onclick="window.open('https://www.nibblz.co.uk/binary-logic-l2','_blank')">Help with this section (Nibblz)</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="mode-group" data-group="hex">
+            <div class="mode-group-header">
+              <span>Hexadecimal</span>
+            </div>
+            <div class="mode-group-body">
+              <div class="btn-row">
+                <button id="h2dBtn">Hex → Denary</button>
+                <button id="d2hBtn">Denary → Hex</button>
+                <button id="b2hBtn">Binary → Hex</button>
+                <button id="h2bBtn">Hex → Binary</button>
+                <button id="mixedHexBtn">Mixed Hex</button>
+              </div>
+              <div class="btn-row">
+                <button id="hexHelpBtn" class="help-btn help-hex">Help: Hex skills</button>
+                <button class="link-btn help-hex" onclick="window.open('https://www.nibblz.co.uk/binary-logic-l3','_blank')">Help with this section (Nibblz)</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="mode-group" data-group="special">
+            <div class="mode-group-header">
+              <span>Special</span>
+            </div>
+            <div class="mode-group-body">
+              <div class="btn-row">
+                <button id="masterModeBtn">Master Mode (All skills)</button>
+              </div>
+            </div>
           </div>
 
           <div class="divider"></div>
@@ -562,70 +660,145 @@ head>
           <div id="message"></div>
 
           <div class="btn-row" style="margin-top:4px;">
-            <button id="resetBtn">Reset</button>
+            <button id="resetBtn">Reset run</button>
+            <button id="modeHelpBtn">Mode guide</button>
           </div>
 
           <div id="footer">
             Tip: think in <em>powers of the base</em>. In binary each step left is ×2, in hex it's ×16. Carries and borrows follow those place values.
           </div>
+        </aside>
+      </div>
+    </div>
 
-          <div id="rulesRef">
-            <div id="rulesRefTitle">Number system reference</div>
+    <div id="infoRow">
+      <div id="rulesRef">
+        <div id="rulesRefTitle">Number system reference</div>
 
-            <div class="rulesBlock">
-              <div class="rulesHeading">Binary addition (base 2)</div>
-              <div class="rulesLines">
+        <div class="rulesBlock">
+          <div class="rulesHeading">Binary addition (base 2)</div>
+          <div class="rulesLines">
 0 + 0 = 0
 0 + 1 = 1
 1 + 0 = 1
 1 + 1 = 0  (carry 1)
 1 + 1 + 1 = 1  (carry 1)</div>
-            </div>
+        </div>
 
-            <div class="rulesBlock" style="margin-top:6px;">
-              <div class="rulesHeading">Binary subtraction (base 2)</div>
-              <div class="rulesLines">
+        <div class="rulesBlock" style="margin-top:6px;">
+          <div class="rulesHeading">Binary subtraction (base 2)</div>
+          <div class="rulesLines">
 0 − 0 = 0
 1 − 0 = 1
 1 − 1 = 0
 0 − 1 = 1  (borrow 1 = 10₂ = 2₁₀)</div>
-            </div>
+        </div>
 
-            <div class="rulesBlock" style="margin-top:6px;">
-              <div class="rulesHeading">Hex digits &amp; values</div>
-              <div class="rulesLines">
+        <div class="rulesBlock" style="margin-top:6px;">
+          <div class="rulesHeading">Hex digits &amp; values</div>
+          <div class="rulesLines">
 Hex:  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
 Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
-            </div>
-          </div>
-        </aside>
-
-        <section id="highScoresPanel">
-          <div id="highScoresTitle">Highest score (this device)</div>
-          <div id="highScoresList"></div>
-        </section>
+        </div>
       </div>
+
+      <section id="highScoresPanel">
+        <div id="highScoresTitle">Highest score (this device)</div>
+        <div id="highScoresList"></div>
+      </section>
     </div>
   </div>
 
-  <!-- Binary/Denary convert tutorial overlay -->
-  <div id="convertHelpOverlay" class="hidden">
-    <div id="convertHelpCard">
-      <h3>Binary ↔ Denary – Convert Mode</h3>
+  <!-- Binary ↔ Denary help -->
+  <div id="binHelpOverlay" class="overlay hidden">
+    <div class="overlay-card">
+      <h3>Binary ↔ Denary – Convert skills</h3>
       <p>These modes ask you to change numbers between binary (base 2) and denary (base 10).</p>
       <ul>
-        <li><strong>Binary → Denary</strong>: e.g. <code>1011 → ? in Denary</code> → answer is a decimal number like <strong>11</strong>.</li>
-        <li><strong>Denary → Binary</strong>: e.g. <code>13 → ? in Binary</code> → answer is a binary number like <strong>1101</strong>.</li>
+        <li><strong>Binary → Denary</strong>: convert 0s and 1s into a decimal number.</li>
+        <li><strong>Denary → Binary</strong>: convert a decimal number into 0s and 1s.</li>
+        <li><strong>Mixed Bin/Den</strong>: a mixture of both directions.</li>
       </ul>
-      <p class="legend">
-        Colour guide:<br>
-        <span class="denColour">• Blue question</span> → answer in <strong>Denary</strong> (0–9).<br>
-        <span class="binColour">• Green question</span> → answer in <strong>Binary</strong> (0s and 1s).
-      </p>
-      <button id="convertHelpClose">Got it</button>
+      <p>Use the place-value grid: 1, 2, 4, 8, 16, 32, 64, 128… Each step left is ×2.</p>
+      <button id="binHelpClose" class="overlay-close">Got it</button>
     </div>
   </div>
 
+  <!-- Arithmetic help -->
+  <div id="arithHelpOverlay" class="overlay hidden">
+    <div class="overlay-card">
+      <h3>Binary arithmetic – + and −</h3>
+      <p>Binary works like normal column addition/subtraction, but with base 2.</p>
+      <ul>
+        <li><strong>Addition</strong>: 0+0=0, 0+1=1, 1+0=1, 1+1=0 carry 1, 1+1+1=1 carry 1.</li>
+        <li><strong>Subtraction</strong>: 0−0=0, 1−0=1, 1−1=0, 0−1 → borrow 1 (10₂ = 2₁₀).</li>
+        <li>Every borrow gives <strong>2</strong> to the column on the right; carries move left as normal.</li>
+      </ul>
+      <p>Think of long columns: start on the right, add or subtract, then carry or borrow just like in denary – but with 2 instead of 10.</p>
+      <button id="arithHelpClose" class="overlay-close">Got it</button>
+    </div>
+  </div>
+
+  <!-- Hex help -->
+  <div id="hexHelpOverlay" class="overlay hidden">
+    <div class="overlay-card">
+      <h3>Hexadecimal skills</h3>
+      <p>Hex (base 16) uses 0–9 then A=10, B=11, C=12, D=13, E=14, F=15.</p>
+      <ul>
+        <li><strong>Hex ↔ Denary</strong>: powers of 16 (1, 16, 256, 4096…).</li>
+        <li><strong>Binary ↔ Hex</strong>: group binary digits into 4s (nibbles) and convert each group to one hex digit.</li>
+        <li><strong>Mixed Hex</strong>: any of the above.</li>
+      </ul>
+      <p>Use the reference chart at the bottom to keep track of digit values while you play.</p>
+      <button id="hexHelpClose" class="overlay-close">Got it</button>
+    </div>
+  </div>
+
+  <!-- Global mode guide -->
+  <div id="modeHelpOverlay" class="overlay hidden">
+    <div class="overlay-card">
+      <h3>Mode guide</h3>
+      <p>Each mode practises a different way of thinking like a computer.</p>
+
+      <h4>Binary ↔ Denary</h4>
+      <ul>
+        <li><strong>Binary → Denary</strong>: 0s and 1s → decimal.</li>
+        <li><strong>Denary → Binary</strong>: decimal → 0s and 1s.</li>
+        <li><strong>Mixed Bin/Den</strong>: mixture of both.</li>
+      </ul>
+
+      <h4>Arithmetic (Binary)</h4>
+      <ul>
+        <li><strong>Addition</strong>: column addition with carries in base 2.</li>
+        <li><strong>Subtraction</strong>: column subtraction with borrows in base 2.</li>
+        <li><strong>Mixed + / −</strong>: mixture of both.</li>
+      </ul>
+
+      <h4>Hexadecimal</h4>
+      <ul>
+        <li><strong>Hex ↔ Denary</strong>: convert between hex and decimal.</li>
+        <li><strong>Binary ↔ Hex</strong>: use 4-bit groups (nibbles).</li>
+        <li><strong>Mixed Hex</strong>: any of the hex skills.</li>
+      </ul>
+
+      <h4>Master Mode</h4>
+      <ul>
+        <li><strong>Master Mode</strong>: any skill from any section can appear. You need conversions, arithmetic and hex all at once.</li>
+      </ul>
+
+      <button id="modeHelpClose" class="overlay-close">Close</button>
+    </div>
+  </div>
+
+  <!-- Game Over overlay -->
+  <div id="gameOverOverlay" class="overlay hidden">
+    <div id="gameOverCard" class="overlay-card">
+      <div id="gameOverTitle">Run complete</div>
+      <p id="gameOverMedal"></p>
+      <p id="gameOverStats"></p>
+      <button id="gameOverReplay" class="overlay-close">Play again</button>
+    </div>
+  </div>
   <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
@@ -633,9 +806,12 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
     const answerInput = document.getElementById('answerInput');
     const scoreSpan = document.getElementById('scoreSpan');
     const livesSpan = document.getElementById('livesSpan');
-    const speedSpan = document.getElementById('speedSpan');
+    const levelSpan = document.getElementById('levelSpan');
+    const multiplierSpan = document.getElementById('multiplierSpan');
     const messageEl = document.getElementById('message');
     const modeLabel = document.getElementById('modeLabel');
+    const levelBanner = document.getElementById('levelBanner');
+    const difficultySelect = document.getElementById('difficultySelect');
 
     const addBtn = document.getElementById('addModeBtn');
     const subBtn = document.getElementById('subModeBtn');
@@ -651,12 +827,33 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
     const h2bBtn = document.getElementById('h2bBtn');
     const mixedHexBtn = document.getElementById('mixedHexBtn');
 
+    const masterModeBtn = document.getElementById('masterModeBtn');
+
     const resetBtn = document.getElementById('resetBtn');
+    const modeHelpBtn = document.getElementById('modeHelpBtn');
 
-    const convertHelpOverlay = document.getElementById('convertHelpOverlay');
-    const convertHelpClose = document.getElementById('convertHelpClose');
+    const binHelpBtn = document.getElementById('binHelpBtn');
+    const arithHelpBtn = document.getElementById('arithHelpBtn');
+    const hexHelpBtn = document.getElementById('hexHelpBtn');
 
-    const modeGroups = document.querySelectorAll('.mode-group');
+    const binHelpOverlay = document.getElementById('binHelpOverlay');
+    const binHelpClose = document.getElementById('binHelpClose');
+
+    const arithHelpOverlay = document.getElementById('arithHelpOverlay');
+    const arithHelpClose = document.getElementById('arithHelpClose');
+
+    const hexHelpOverlay = document.getElementById('hexHelpOverlay');
+    const hexHelpClose = document.getElementById('hexHelpClose');
+
+    const modeHelpOverlay = document.getElementById('modeHelpOverlay');
+    const modeHelpClose = document.getElementById('modeHelpClose');
+
+    const gameOverOverlay = document.getElementById('gameOverOverlay');
+    const gameOverTitle = document.getElementById('gameOverTitle');
+    const gameOverMedal = document.getElementById('gameOverMedal');
+    const gameOverStats = document.getElementById('gameOverStats');
+    const gameOverReplay = document.getElementById('gameOverReplay');
+
     const highScoresListEl = document.getElementById('highScoresList');
 
     const MODES = {
@@ -670,13 +867,15 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
       D2H: 'd2h',
       B2H: 'b2h',
       H2B: 'h2b',
-      MIXED_HEX: 'mixed_hex'
+      MIXED_HEX: 'mixed_hex',
+      MASTER: 'master'
     };
 
     const GROUPS = {
-      arithmetic: 'Arithmetic (Binary)',
       binDen: 'Binary ↔ Denary',
-      hex: 'Hexadecimal'
+      arithmetic: 'Arithmetic (Binary)',
+      hex: 'Hexadecimal',
+      special: 'Special'
     };
 
     const modeMeta = {
@@ -690,18 +889,24 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
       [MODES.D2H]:          { label: 'Denary → Hex',         group: 'hex' },
       [MODES.B2H]:          { label: 'Binary → Hex',         group: 'hex' },
       [MODES.H2B]:          { label: 'Hex → Binary',         group: 'hex' },
-      [MODES.MIXED_HEX]:    { label: 'Mixed Hex',            group: 'hex' }
+      [MODES.MIXED_HEX]:    { label: 'Mixed Hex',            group: 'hex' },
+      [MODES.MASTER]:       { label: 'Master Mode (All skills)', group: 'special' }
     };
 
-    const STORAGE_KEY = 'ccc_highscores_v1';
+    const MASTER_POOL = [
+      MODES.ADD, MODES.SUB, MODES.MIXED_ARITH,
+      MODES.B2D, MODES.D2B, MODES.MIXED_BIN_DEN,
+      MODES.H2D, MODES.D2H, MODES.B2H, MODES.H2B, MODES.MIXED_HEX
+    ];
 
-    let mode = MODES.ADD;
-    let hasSeenConvertHelp = false;
+    const STORAGE_KEY = 'ccc_highscores_v3';
 
+    let mode = MODES.B2D;
     let score = 0;
     let lives = 3;
-    let speed = 1;
+    let baseLevel = 1;
     let difficultyLevel = 1;
+    let multiplier = 1;
     let spawnInterval = 9000;
     let lastSpawn = 0;
     let lastTime = 0;
@@ -711,14 +916,12 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
     const laneCount = 3;
     const laneWidth = canvas.width / laneCount;
 
-    // high scores per mode
     let highScores = {};
+
     function loadHighScores() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-          highScores = JSON.parse(raw);
-        }
+        if (raw) highScores = JSON.parse(raw);
       } catch (e) {
         highScores = {};
       }
@@ -730,12 +933,12 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
     function saveHighScores() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(highScores));
-      } catch (_) {}
+      } catch {}
     }
 
     function updateHighScoresDisplay() {
       let html = '';
-      const order = ['arithmetic', 'binDen', 'hex'];
+      const order = ['binDen', 'arithmetic', 'hex', 'special'];
       for (const g of order) {
         html += `<div class="hs-groupTitle">${GROUPS[g]}</div>`;
         for (const [key, meta] of Object.entries(modeMeta)) {
@@ -755,19 +958,49 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
     function toHex(n) { return n.toString(16).toUpperCase(); }
     function padBinary(bin, width) { return bin.padStart(width, '0'); }
 
+    const levelTitles = {
+      1: 'BOOT SEQUENCE',
+      2: 'UPLINK ESTABLISHED',
+      3: 'DATA SURGE',
+      4: 'SYSTEM OVERCLOCK',
+      5: 'QUANTUM MODE',
+      6: 'MACHINE MIND',
+      7: 'CYBER ELITE',
+      8: 'DIGITAL DEMIGOD',
+      9: 'VIRAL VELOCITY',
+      10: 'CYBERLEGEND'
+    };
+
+    function getLevelTitle(level) {
+      if (levelTitles[level]) return levelTitles[level];
+      if (level > 10) return 'CYBERLEGEND';
+      return 'BOOT SEQUENCE';
+    }
+
+    function getMultiplier(level) {
+      if (level >= 10) return 8;
+      if (level >= 8) return 6;
+      if (level >= 6) return 4;
+      if (level >= 4) return 3;
+      if (level >= 3) return 2;
+      if (level >= 2) return 1.5;
+      return 1;
+    }
+
     function generateProblem() {
-      // bits grow with difficulty: 3,4,5,6,7
       const bits = Math.min(3 + Math.floor((difficultyLevel - 1) / 2), 7);
       const maxVal = Math.pow(2, bits) - 1;
-
-      // hex values also grow with difficulty, up to 255 (FF)
       const hexMax = Math.min(15 + difficultyLevel * 16, 255);
-
       const lane = randomInt(0, laneCount - 1);
 
       let expr, answer, answerType;
 
-      switch (mode) {
+      let effectiveMode = mode;
+      if (mode === MODES.MASTER) {
+        effectiveMode = MASTER_POOL[randomInt(0, MASTER_POOL.length - 1)];
+      }
+
+      switch (effectiveMode) {
         case MODES.B2D: {
           const val = randomInt(0, maxVal);
           const bin = padBinary(toBinary(val), bits);
@@ -830,7 +1063,7 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
           break;
         }
         case MODES.MIXED_HEX: {
-          const choice = randomInt(0, 3); // 0:H2D 1:D2H 2:B2H 3:H2B
+          const choice = randomInt(0, 3);
           const val = randomInt(0, hexMax);
           if (choice === 0) {
             const hex = toHex(val);
@@ -855,11 +1088,13 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
           break;
         }
         default: {
-          // Arithmetic in binary
+          const bitsArith = bits;
+          const maxArith = Math.pow(2, bitsArith) - 1;
+
           let op;
-          if (mode === MODES.MIXED_ARITH) {
+          if (effectiveMode === MODES.MIXED_ARITH) {
             op = Math.random() < 0.5 ? '+' : '-';
-          } else if (mode === MODES.ADD) {
+          } else if (effectiveMode === MODES.ADD) {
             op = '+';
           } else {
             op = '-';
@@ -867,17 +1102,17 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
 
           let a, b, result;
           if (op === '+') {
-            a = randomInt(0, Math.floor(maxVal / 2));
-            b = randomInt(0, Math.floor(maxVal / 2));
+            a = randomInt(0, Math.floor(maxArith / 2));
+            b = randomInt(0, Math.floor(maxArith / 2));
             result = a + b;
           } else {
-            a = randomInt(Math.floor(maxVal / 2), maxVal);
+            a = randomInt(Math.floor(maxArith / 2), maxArith);
             b = randomInt(0, a);
             result = a - b;
           }
 
-          const aBin = padBinary(toBinary(a), bits);
-          const bBin = padBinary(toBinary(b), bits);
+          const aBin = padBinary(toBinary(a), bitsArith);
+          const bBin = padBinary(toBinary(b), bitsArith);
           const rBin = toBinary(result);
 
           expr = aBin + ' ' + op + ' ' + bBin;
@@ -892,13 +1127,35 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
         answerType,
         lane,
         y: -40,
-        speed: 20 + speed * 6   // uses current difficulty-based speed
+        speed: 20 + difficultyLevel * 6
       });
     }
 
     function setMessage(text, good=false) {
       messageEl.textContent = text;
       messageEl.className = good ? 'good' : (text ? 'bad' : '');
+    }
+
+    function getLevelTitleWrapper(level) {
+      if (levelTitles[level]) return levelTitles[level];
+      if (level > 10) return 'CYBERLEGEND';
+      return 'BOOT SEQUENCE';
+    }
+
+    function showLevelBanner(level) {
+      const title = getLevelTitleWrapper(level);
+      levelBanner.textContent = `SYSTEM UPGRADE: LEVEL ${level} – ${title}`;
+      levelBanner.classList.add('show');
+      setTimeout(() => levelBanner.classList.remove('show'), 1100);
+    }
+
+    function getTierName(level) {
+      if (level >= 10) return { name: 'CyberLegend', className: 'medal-legend' };
+      if (level >= 8)  return { name: 'Diamond', className: 'medal-diamond' };
+      if (level >= 6)  return { name: 'Platinum', className: 'medal-platinum' };
+      if (level >= 4)  return { name: 'Gold', className: 'medal-gold' };
+      if (level >= 2)  return { name: 'Silver', className: 'medal-silver' };
+      return { name: 'Bronze', className: 'medal-bronze' };
     }
 
     function update(dt) {
@@ -923,19 +1180,19 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
         }
       }
 
-      // Difficulty scaling:
-      // every 5 correct answers increases level by 1
-      difficultyLevel = 1 + Math.floor(score / 5);
-      if (difficultyLevel < 1) difficultyLevel = 1;
+      const prevLevel = difficultyLevel;
+      difficultyLevel = baseLevel + Math.floor(score / 5);
+      if (difficultyLevel < baseLevel) difficultyLevel = baseLevel;
 
-      // speed multiplier = difficulty level
-      speed = difficultyLevel;
+      if (difficultyLevel !== prevLevel) {
+        showLevelBanner(difficultyLevel);
+      }
 
-      // spawn interval decreases with difficulty (down to 3500 ms)
+      multiplier = getMultiplier(difficultyLevel);
       spawnInterval = Math.max(3500, 9000 - (difficultyLevel - 1) * 600);
 
-      // show difficulty level in UI
-      speedSpan.textContent = String(difficultyLevel);
+      levelSpan.textContent = String(difficultyLevel);
+      multiplierSpan.textContent = '×' + multiplier.toString();
     }
 
     function draw() {
@@ -961,11 +1218,8 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
         ctx.strokeStyle = '#3af2a3';
         ctx.lineWidth = 2;
         ctx.beginPath();
-        if (ctx.roundRect) {
-          ctx.roundRect(x + 4, y, w, h, 7);
-        } else {
-          ctx.rect(x + 4, y, w, h);
-        }
+        if (ctx.roundRect) ctx.roundRect(x + 4, y, w, h, 7);
+        else ctx.rect(x + 4, y, w, h);
         ctx.fill();
         ctx.stroke();
 
@@ -1008,9 +1262,7 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
       }
 
       let target = problems[0];
-      for (let p of problems) {
-        if (p.y > target.y) target = p;
-      }
+      for (let p of problems) if (p.y > target.y) target = p;
 
       const answerType = target.answerType;
 
@@ -1033,18 +1285,18 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
 
       let cleanedInput, cleanedAnswer;
       if (answerType === 'hex') {
-        cleanedInput  = rawInput.replace(/^0+/, '') || '0';
-        cleanedInput  = cleanedInput.toUpperCase();
-        cleanedAnswer = String(target.answer).replace(/^0+/, '') || '0';
-        cleanedAnswer = cleanedAnswer.toUpperCase();
+        cleanedInput  = (rawInput.replace(/^0+/, '') || '0').toUpperCase();
+        cleanedAnswer = (String(target.answer).replace(/^0+/, '') || '0').toUpperCase();
       } else {
         cleanedInput  = rawInput.replace(/^0+/, '') || '0';
         cleanedAnswer = String(target.answer).replace(/^0+/, '') || '0';
       }
 
       if (cleanedInput === cleanedAnswer) {
-        score += 1;
+        const points = Math.round(1 * multiplier);
+        score += points;
         scoreSpan.textContent = score;
+
         if (score > (highScores[mode] || 0)) {
           highScores[mode] = score;
           saveHighScores();
@@ -1052,32 +1304,47 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
         }
         const index = problems.indexOf(target);
         if (index !== -1) problems.splice(index, 1);
-        setMessage('✅ Correct! Nice work.', true);
+        setMessage(`✅ Correct! +${points} point${points !== 1 ? 's' : ''}.`, true);
         answerInput.value = '';
       } else {
         setMessage('❌ Not quite. Try again!', false);
       }
     }
 
+    function showGameOverOverlay() {
+      const tier = getTierName(difficultyLevel);
+      gameOverTitle.textContent = 'Run complete';
+      gameOverMedal.textContent = `You reached LEVEL ${difficultyLevel} – ${tier.name} rank`;
+      gameOverMedal.className = tier.className;
+      gameOverStats.textContent = `Final score: ${score}. Mode: ${modeMeta[mode].label}.`;
+      gameOverOverlay.classList.remove('hidden');
+    }
+
     function gameOver() {
       paused = true;
-      setMessage('Game over! Press Reset to play again.', false);
+      setMessage('Game over!', false);
+      showGameOverOverlay();
     }
 
     function resetGame() {
       score = 0;
       lives = 3;
-      speed = 1;
-      difficultyLevel = 1;
+      baseLevel = parseInt(difficultySelect.value, 10) || 1;
+      difficultyLevel = baseLevel;
+      multiplier = getMultiplier(difficultyLevel);
       spawnInterval = 9000;
       lastSpawn = performance.now();
       problems.length = 0;
       paused = false;
+
       scoreSpan.textContent = score;
       livesSpan.textContent = lives;
-      speedSpan.textContent = String(difficultyLevel);
+      levelSpan.textContent = String(difficultyLevel);
+      multiplierSpan.textContent = '×' + multiplier.toString();
       setMessage('');
       answerInput.value = '';
+      gameOverOverlay.classList.add('hidden');
+      showLevelBanner(difficultyLevel);
     }
 
     answerInput.addEventListener('keydown', e => {
@@ -1086,20 +1353,33 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
 
     resetBtn.addEventListener('click', resetGame);
 
-    function showConvertHelp() {
-      convertHelpOverlay.classList.remove('hidden');
-    }
+    difficultySelect.addEventListener('change', () => {
+      resetGame();
+    });
 
-    convertHelpClose.addEventListener('click', () => {
-      convertHelpOverlay.classList.add('hidden');
-      hasSeenConvertHelp = true;
+    binHelpBtn.addEventListener('click', () => binHelpOverlay.classList.remove('hidden'));
+    binHelpClose.addEventListener('click', () => binHelpOverlay.classList.add('hidden'));
+
+    arithHelpBtn.addEventListener('click', () => arithHelpOverlay.classList.remove('hidden'));
+    arithHelpClose.addEventListener('click', () => arithHelpOverlay.classList.add('hidden'));
+
+    hexHelpBtn.addEventListener('click', () => hexHelpOverlay.classList.remove('hidden'));
+    hexHelpClose.addEventListener('click', () => hexHelpOverlay.classList.add('hidden'));
+
+    modeHelpBtn.addEventListener('click', () => modeHelpOverlay.classList.remove('hidden'));
+    modeHelpClose.addEventListener('click', () => modeHelpOverlay.classList.add('hidden'));
+
+    gameOverReplay.addEventListener('click', () => {
+      gameOverOverlay.classList.add('hidden');
+      resetGame();
     });
 
     function clearActiveButtons() {
       [
         addBtn, subBtn, mixedArithBtn,
         b2dBtn, d2bBtn, mixedBinDenBtn,
-        h2dBtn, d2hBtn, b2hBtn, h2bBtn, mixedHexBtn
+        h2dBtn, d2hBtn, b2hBtn, h2bBtn, mixedHexBtn,
+        masterModeBtn
       ].forEach(btn => btn && btn.classList.remove('active'));
     }
 
@@ -1118,14 +1398,10 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
       if (mode === MODES.B2H) b2hBtn.classList.add('active');
       if (mode === MODES.H2B) h2bBtn.classList.add('active');
       if (mode === MODES.MIXED_HEX) mixedHexBtn.classList.add('active');
+      if (mode === MODES.MASTER) masterModeBtn.classList.add('active');
 
       modeLabel.textContent = modeMeta[mode].label || 'Mode';
-
       resetGame();
-
-      if ((mode === MODES.B2D || mode === MODES.D2B || mode === MODES.MIXED_BIN_DEN) && !hasSeenConvertHelp) {
-        showConvertHelp();
-      }
     }
 
     addBtn.addEventListener('click', () => setMode(MODES.ADD));
@@ -1139,23 +1415,17 @@ Den:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15</div>
     b2hBtn.addEventListener('click', () => setMode(MODES.B2H));
     h2bBtn.addEventListener('click', () => setMode(MODES.H2B));
     mixedHexBtn.addEventListener('click', () => setMode(MODES.MIXED_HEX));
+    masterModeBtn.addEventListener('click', () => setMode(MODES.MASTER));
 
-    // Collapsible groups
-    modeGroups.forEach(group => {
-      const header = group.querySelector('.mode-group-header');
-      const chevron = header.querySelector('.chevron');
-      header.addEventListener('click', () => {
-        const collapsed = group.classList.toggle('collapsed');
-        chevron.textContent = collapsed ? '▸' : '▾';
-      });
-    });
+    function init() {
+      loadHighScores();
+      updateHighScoresDisplay();
+      resetGame();
+      answerInput.focus();
+      requestAnimationFrame(t => { lastTime = t; gameLoop(t); });
+    }
 
-    // Init
-    loadHighScores();
-    updateHighScoresDisplay();
-    resetGame();
-    answerInput.focus();
-    requestAnimationFrame(t => { lastTime = t; gameLoop(t); });
+    init();
   </script>
 </body>
 </html>
